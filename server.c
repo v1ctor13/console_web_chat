@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
@@ -13,15 +14,15 @@ int main(){
     SOCKET listenSocket = INVALID_SOCKET;
     SOCKET acceptanceSocket = INVALID_SOCKET;
 
-    int sFamily = AF_INET;          // "ADRESS FAMILY INTERNET" IPv4
-    int sType = SOCK_STREAM;        // Two-way connection-based socket (uses TCP)
-    int sProtocol = IPPROTO_TCP;    // TCP protocol
+    int sFamily     = AF_INET;      // "ADRESS FAMILY INTERNET" IPv4
+    int sType       = SOCK_STREAM;  // Two-way connection-based socket (uses TCP)
+    int sProtocol   = IPPROTO_TCP;  // TCP protocol
 
     // Used to store functions results
     int result;
 
     WSADATA wsa;
-    if( (result = WSAStartup(0b0000001000000010, &wsa) ) != 0){ // Max and Min version in Binary
+    if( (result = WSAStartup(0b0000001000000010, &wsa) ) != 0){ // Max and Min version in two bytes in binary
         printf("[ERROR] Unable to initialize WSA structure. Error core: %d\n", result);
         return -1;
     }
@@ -61,22 +62,23 @@ int main(){
         return -1;
     }
 
-    printf("[*] Waiting for connections...\n");
+    printf("$ Waiting for connections...\n");
 
-    if( (acceptanceSocket = accept(listenSocket, NULL, NULL) ) == INVALID_SOCKET){
+    if( (acceptanceSocket = accept(listenSocket, NULL, NULL)) == INVALID_SOCKET){
         printf("[ERROR] Unable to accept connection. Error code: %d\n", WSAGetLastError());
         WSACleanup();
         return -1;
     }
 
-    printf("[*] Connected to client.\n");
+    printf("$ Connected to client.\n");
 
-    char recvBuffer[DEFAULT_BUFLEN];
+    char recvBuffer[DEFAULT_BUFLEN] = "";
     result = 0;
     do{
-        result = recv(acceptanceSocket, recvBuffer, sizeof(recvBuffer), 0);
+        memset(recvBuffer, 0, sizeof(recvBuffer));
+        result = recv(acceptanceSocket, recvBuffer, DEFAULT_BUFLEN * sizeof(char), 0);
         if(result > 0){
-            printf("\n> Data received: ");
+            printf("\n$ Data received: ");
             puts(recvBuffer);
         }
         if(result == 0){
